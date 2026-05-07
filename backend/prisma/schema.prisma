@@ -1,0 +1,68 @@
+// CarGallery - Prisma Schema
+// Car Rental System Database Models
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+enum FuelType {
+  Gasoline
+  Diesel
+  Electric
+  Hybrid
+}
+
+enum Transmission {
+  Automatic
+  Manual
+}
+
+enum ReservationStatus {
+  pending
+  approved
+  cancelled
+}
+
+model Category {
+  id        Int       @id @default(autoincrement())
+  name      String    @unique
+  createdAt DateTime  @default(now())
+  vehicles  Vehicle[]
+}
+
+model Vehicle {
+  id           Int            @id @default(autoincrement())
+  brand        String
+  model        String
+  year         Int
+  pricePerDay  Decimal        @db.Decimal(10, 2)
+  fuelType     FuelType
+  transmission Transmission
+  mileage      Int
+  imageUrl     String?
+  available    Boolean        @default(true)
+  categoryId   Int
+  category     Category       @relation(fields: [categoryId], references: [id])
+  reservations Reservation[]
+  createdAt    DateTime       @default(now())
+  updatedAt    DateTime       @updatedAt
+}
+
+model Reservation {
+  id            Int               @id @default(autoincrement())
+  vehicleId     Int
+  vehicle       Vehicle           @relation(fields: [vehicleId], references: [id])
+  customerName  String
+  customerPhone String
+  startDate     DateTime          @db.Date
+  endDate       DateTime          @db.Date
+  totalPrice    Decimal           @db.Decimal(10, 2)
+  status        ReservationStatus @default(pending)
+  createdAt     DateTime          @default(now())
+  updatedAt     DateTime          @updatedAt
+}

@@ -5,6 +5,9 @@ const swaggerUi = require('swagger-ui-express');
 const swaggerSpec = require('./swagger/swagger');
 const errorHandler = require('./middlewares/errorHandler');
 
+// Import routes
+const categoryRoutes = require('./routes/categoryRoutes');
+
 const app = express();
 
 // Middlewares
@@ -19,6 +22,9 @@ app.use('/api-docs', swaggerUi.serve, swaggerUi.setup(swaggerSpec, {
   customCss: '.swagger-ui .topbar { display: none }',
   customSiteTitle: 'CarGallery API Docs',
 }));
+
+// API Routes
+app.use('/api/categories', categoryRoutes);
 
 // Health check
 app.get('/api/health', (req, res) => {

@@ -7,6 +7,7 @@ const errorHandler = require('./middlewares/errorHandler');
 
 // Import routes
 const categoryRoutes = require('./routes/categoryRoutes');
+const vehicleRoutes = require('./routes/vehicleRoutes');
 
 const app = express();
 
@@ -25,6 +26,7 @@ app.use('/api-docs', swaggerUi.serve, swaggerUi.setup(swaggerSpec, {
 
 // API Routes
 app.use('/api/categories', categoryRoutes);
+app.use('/api/vehicles', vehicleRoutes);
 
 // Health check
 app.get('/api/health', (req, res) => {

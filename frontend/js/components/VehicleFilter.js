@@ -98,19 +98,28 @@ const VehicleFilter = {
    */
   attachListeners(onChange) {
     const ids = ['filter-search', 'filter-category', 'filter-fuel', 'filter-transmission', 'filter-sort'];
+    let debounceTimer = null;
 
     ids.forEach((id) => {
       const el = document.getElementById(id);
       if (!el) return;
 
-      const event = id === 'filter-search' ? 'input' : 'change';
-      el.addEventListener(event, onChange);
+      if (id === 'filter-search') {
+        // Debounce search input to reduce API calls while typing
+        el.addEventListener('input', () => {
+          clearTimeout(debounceTimer);
+          debounceTimer = setTimeout(onChange, 300);
+        });
+      } else {
+        el.addEventListener('change', onChange);
+      }
     });
 
     // Reset button
     const resetBtn = document.getElementById('filter-reset');
     if (resetBtn) {
       resetBtn.addEventListener('click', () => {
+        clearTimeout(debounceTimer);
         ids.forEach((id) => {
           const el = document.getElementById(id);
           if (el) el.value = '';

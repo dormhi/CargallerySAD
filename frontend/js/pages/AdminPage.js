@@ -324,6 +324,13 @@ const AdminPage = {
         available: document.getElementById('veh-available').checked,
       };
 
+      // Client-side validation
+      const validationError = this.validateVehicleData(data);
+      if (validationError) {
+        document.getElementById('veh-error').textContent = validationError;
+        return;
+      }
+
       try {
         if (isEdit) {
           await api.updateVehicle(vehicle.id, data);
@@ -338,6 +345,23 @@ const AdminPage = {
         document.getElementById('veh-error').textContent = error.message;
       }
     });
+  },
+
+  /**
+   * Validate vehicle form data on the client side
+   * @param {object} data - Vehicle form data
+   * @returns {string|null} Error message or null if valid
+   */
+  validateVehicleData(data) {
+    if (!data.brand || data.brand.length < 2) return 'Brand must be at least 2 characters';
+    if (!data.model || data.model.length < 1) return 'Model is required';
+    if (!data.year || data.year < 1990 || data.year > new Date().getFullYear() + 1) {
+      return `Year must be between 1990 and ${new Date().getFullYear() + 1}`;
+    }
+    if (!data.pricePerDay || data.pricePerDay <= 0) return 'Price per day must be greater than 0';
+    if (data.mileage < 0) return 'Mileage cannot be negative';
+    if (!data.categoryId) return 'Category is required';
+    return null;
   },
 
   async deleteVehicle(id) {

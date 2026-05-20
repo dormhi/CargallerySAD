@@ -37,11 +37,12 @@ const HomePage = {
       `;
 
       // Attach filter listeners
-      VehicleFilter.attachListeners(() => this.loadVehicles());
+      VehicleFilter.attachListeners(() => HomePage.loadVehicles());
 
       // Initial load
-      await this.loadVehicles();
+      await HomePage.loadVehicles();
     } catch (error) {
+      console.error('HomePage render error:', error);
       app.innerHTML = `
         <div class="container">
           <div class="empty-state">

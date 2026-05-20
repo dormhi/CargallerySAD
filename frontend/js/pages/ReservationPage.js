@@ -20,9 +20,9 @@ const ReservationPage = {
 
     try {
       const response = await api.getVehicle(vehicleId);
-      this.vehicle = response.data;
+      ReservationPage.vehicle = response.data;
 
-      if (!this.vehicle.available) {
+      if (!ReservationPage.vehicle.available) {
         app.innerHTML = `
           <div class="container">
             <a href="#/vehicles/${vehicleId}" class="back-link">← Back to vehicle</a>
@@ -42,7 +42,7 @@ const ReservationPage = {
           <a href="#/vehicles/${vehicleId}" class="back-link">← Back to vehicle</a>
 
           <div class="page-header">
-            <h1 class="page-header__title">Reserve ${this.vehicle.brand} ${this.vehicle.model}</h1>
+            <h1 class="page-header__title">Reserve ${ReservationPage.vehicle.brand} ${ReservationPage.vehicle.model}</h1>
             <p class="page-header__subtitle">Fill in your details to book this vehicle</p>
           </div>
 
@@ -90,11 +90,11 @@ const ReservationPage = {
                 <h3 class="reservation-card__title">Price Summary</h3>
                 <div class="reservation-card__row">
                   <span class="reservation-card__label">Vehicle</span>
-                  <span class="reservation-card__value">${this.vehicle.brand} ${this.vehicle.model}</span>
+                  <span class="reservation-card__value">${ReservationPage.vehicle.brand} ${ReservationPage.vehicle.model}</span>
                 </div>
                 <div class="reservation-card__row">
                   <span class="reservation-card__label">Price per day</span>
-                  <span class="reservation-card__value">$${Number(this.vehicle.pricePerDay).toFixed(2)}</span>
+                  <span class="reservation-card__value">$${Number(ReservationPage.vehicle.pricePerDay).toFixed(2)}</span>
                 </div>
                 <div class="reservation-card__row">
                   <span class="reservation-card__label">Duration</span>
@@ -110,7 +110,7 @@ const ReservationPage = {
         </div>
       `;
 
-      this.attachListeners();
+      ReservationPage.attachListeners();
     } catch (error) {
       app.innerHTML = `
         <div class="container">
@@ -130,13 +130,13 @@ const ReservationPage = {
     const form = document.getElementById('reservation-form');
 
     // Update price preview on date change
-    startInput.addEventListener('change', () => this.updatePricePreview());
-    endInput.addEventListener('change', () => this.updatePricePreview());
+    startInput.addEventListener('change', () => ReservationPage.updatePricePreview());
+    endInput.addEventListener('change', () => ReservationPage.updatePricePreview());
 
     // Form submit
     form.addEventListener('submit', (e) => {
       e.preventDefault();
-      this.handleSubmit();
+      ReservationPage.handleSubmit();
     });
   },
 
@@ -161,7 +161,7 @@ const ReservationPage = {
       return;
     }
 
-    const total = days * Number(this.vehicle.pricePerDay);
+    const total = days * Number(ReservationPage.vehicle.pricePerDay);
     daysEl.textContent = `${days} day${days !== 1 ? 's' : ''}`;
     totalEl.textContent = `$${total.toFixed(2)}`;
   },
@@ -209,7 +209,7 @@ const ReservationPage = {
   },
 
   async handleSubmit() {
-    if (!this.validateForm()) return;
+    if (!ReservationPage.validateForm()) return;
 
     const submitBtn = document.getElementById('res-submit');
     submitBtn.disabled = true;
@@ -217,7 +217,7 @@ const ReservationPage = {
 
     try {
       await api.createReservation({
-        vehicleId: this.vehicle.id,
+        vehicleId: ReservationPage.vehicle.id,
         customerName: document.getElementById('res-name').value.trim(),
         customerPhone: document.getElementById('res-phone').value.trim(),
         startDate: document.getElementById('res-start').value,
@@ -225,7 +225,7 @@ const ReservationPage = {
       });
 
       Toast.success('Reservation created successfully!');
-      Router.navigate(`/vehicles/${this.vehicle.id}`);
+      Router.navigate(`/vehicles/${ReservationPage.vehicle.id}`);
     } catch (error) {
       document.getElementById('error-general').textContent = error.message;
       Toast.error(error.message);

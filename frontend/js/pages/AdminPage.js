@@ -30,12 +30,12 @@ const AdminPage = {
       if (e.target.classList.contains('tabs__tab')) {
         document.querySelectorAll('.tabs__tab').forEach((t) => t.classList.remove('active'));
         e.target.classList.add('active');
-        this.activeTab = e.target.dataset.tab;
-        this.loadTab();
+        AdminPage.activeTab = e.target.dataset.tab;
+        AdminPage.loadTab();
       }
     });
 
-    await this.loadTab();
+    await AdminPage.loadTab();
   },
 
   async loadTab() {
@@ -43,15 +43,15 @@ const AdminPage = {
     content.innerHTML = `<div class="loading"><div class="loading__spinner"></div></div>`;
 
     try {
-      switch (this.activeTab) {
+      switch (AdminPage.activeTab) {
         case 'vehicles':
-          await this.renderVehicles(content);
+          await AdminPage.renderVehicles(content);
           break;
         case 'categories':
-          await this.renderCategories(content);
+          await AdminPage.renderCategories(content);
           break;
         case 'reservations':
-          await this.renderReservations(content);
+          await AdminPage.renderReservations(content);
           break;
       }
     } catch (error) {
@@ -99,19 +99,19 @@ const AdminPage = {
 
     // Add category
     document.getElementById('add-category-btn').addEventListener('click', () => {
-      this.showCategoryForm();
+      AdminPage.showCategoryForm();
     });
 
     // Edit buttons
     container.querySelectorAll('.edit-cat').forEach((btn) => {
       btn.addEventListener('click', () => {
-        this.showCategoryForm(btn.dataset.id, btn.dataset.name);
+        AdminPage.showCategoryForm(btn.dataset.id, btn.dataset.name);
       });
     });
 
     // Delete buttons
     container.querySelectorAll('.delete-cat').forEach((btn) => {
-      btn.addEventListener('click', () => this.deleteCategory(btn.dataset.id));
+      btn.addEventListener('click', () => AdminPage.deleteCategory(btn.dataset.id));
     });
   },
 
@@ -146,7 +146,7 @@ const AdminPage = {
           Toast.success('Category created');
         }
         Modal.close();
-        this.loadTab();
+        AdminPage.loadTab();
       } catch (error) {
         document.getElementById('cat-error').textContent = error.message;
       }
@@ -158,7 +158,7 @@ const AdminPage = {
     try {
       await api.deleteCategory(id);
       Toast.success('Category deleted');
-      this.loadTab();
+      AdminPage.loadTab();
     } catch (error) {
       Toast.error(error.message);
     }
@@ -215,27 +215,27 @@ const AdminPage = {
     `;
 
     // Store categories for vehicle form
-    this._categories = categories;
+    AdminPage._categories = categories;
 
     document.getElementById('add-vehicle-btn').addEventListener('click', () => {
-      this.showVehicleForm();
+      AdminPage.showVehicleForm();
     });
 
     container.querySelectorAll('.edit-veh').forEach((btn) => {
       btn.addEventListener('click', async () => {
         const res = await api.getVehicle(btn.dataset.id);
-        this.showVehicleForm(res.data);
+        AdminPage.showVehicleForm(res.data);
       });
     });
 
     container.querySelectorAll('.delete-veh').forEach((btn) => {
-      btn.addEventListener('click', () => this.deleteVehicle(btn.dataset.id));
+      btn.addEventListener('click', () => AdminPage.deleteVehicle(btn.dataset.id));
     });
   },
 
   showVehicleForm(vehicle = null) {
     const isEdit = vehicle !== null;
-    const cats = this._categories || [];
+    const cats = AdminPage._categories || [];
     const catOptions = cats.map((c) =>
       `<option value="${c.id}" ${vehicle && vehicle.categoryId === c.id ? 'selected' : ''}>${c.name}</option>`
     ).join('');
@@ -325,7 +325,7 @@ const AdminPage = {
       };
 
       // Client-side validation
-      const validationError = this.validateVehicleData(data);
+      const validationError = AdminPage.validateVehicleData(data);
       if (validationError) {
         document.getElementById('veh-error').textContent = validationError;
         return;
@@ -340,7 +340,7 @@ const AdminPage = {
           Toast.success('Vehicle created');
         }
         Modal.close();
-        this.loadTab();
+        AdminPage.loadTab();
       } catch (error) {
         document.getElementById('veh-error').textContent = error.message;
       }
@@ -369,7 +369,7 @@ const AdminPage = {
     try {
       await api.deleteVehicle(id);
       Toast.success('Vehicle deleted');
-      this.loadTab();
+      AdminPage.loadTab();
     } catch (error) {
       Toast.error(error.message);
     }
@@ -435,7 +435,7 @@ const AdminPage = {
         try {
           await api.updateReservationStatus(btn.dataset.id, 'approved');
           Toast.success('Reservation approved');
-          this.loadTab();
+          AdminPage.loadTab();
         } catch (error) {
           Toast.error(error.message);
         }
@@ -448,7 +448,7 @@ const AdminPage = {
         try {
           await api.updateReservationStatus(btn.dataset.id, 'cancelled');
           Toast.success('Reservation cancelled');
-          this.loadTab();
+          AdminPage.loadTab();
         } catch (error) {
           Toast.error(error.message);
         }
@@ -462,7 +462,7 @@ const AdminPage = {
         try {
           await api.deleteReservation(btn.dataset.id);
           Toast.success('Reservation deleted');
-          this.loadTab();
+          AdminPage.loadTab();
         } catch (error) {
           Toast.error(error.message);
         }

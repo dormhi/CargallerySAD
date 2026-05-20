@@ -14,6 +14,9 @@ const reservationRepository = {
         vehicle: {
           include: { category: true },
         },
+        user: {
+          select: { id: true, name: true, email: true, phone: true },
+        },
       },
       orderBy: { createdAt: 'desc' },
     });

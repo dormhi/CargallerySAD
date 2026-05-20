@@ -154,7 +154,8 @@ router.get('/:id', reservationController.getById);
  *       409:
  *         description: Date conflict with existing reservation
  */
-router.post('/', validate(createReservationSchema), reservationController.create);
+const { requireAuth } = require('../middlewares/auth');
+router.post('/', requireAuth, validate(createReservationSchema), reservationController.create);
 
 /**
  * @swagger

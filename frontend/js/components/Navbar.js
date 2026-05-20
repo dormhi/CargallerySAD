@@ -1,23 +1,60 @@
 /**
  * Navbar Component
- * Handles active link highlighting based on current route
+ * Renders role-based navigation links
  */
 const Navbar = {
-  /**
-   * Set the active navbar link based on current hash
-   * @param {string} hash - Current hash path
-   */
-  setActive(hash) {
-    const links = document.querySelectorAll('.navbar__link');
-    links.forEach((link) => {
-      link.classList.remove('active');
+  render() {
+    const linksEl = document.getElementById('navbar-links');
+    if (!linksEl) return;
 
-      const page = link.dataset.page;
-      if (page === 'home' && (hash === '/' || hash.startsWith('/vehicles'))) {
-        link.classList.add('active');
-      } else if (page === 'admin' && hash === '/admin') {
-        link.classList.add('active');
+    const user = Auth.getUser();
+
+    let links = `<li><a href="#/" class="navbar__link" data-page="home">Home</a></li>`;
+
+    if (user) {
+      links += `<li><a href="#/dashboard" class="navbar__link" data-page="dashboard">Dashboard</a></li>`;
+
+      if (Auth.isAdmin()) {
+        links += `<li><a href="#/admin" class="navbar__link" data-page="admin">Admin</a></li>`;
       }
+
+      links += `
+        <li class="navbar__user">
+          <span class="navbar__user-name">$${Number(user.balance).toFixed(0)} • ${user.name}</span>
+          <a href="#" class="navbar__link navbar__logout" id="logout-btn">Logout</a>
+        </li>
+      `;
+    } else {
+      links += `
+        <li><a href="#/login" class="navbar__link" data-page="login">Login</a></li>
+        <li><a href="#/register" class="navbar__link" data-page="register">Register</a></li>
+      `;
+    }
+
+    linksEl.innerHTML = links;
+
+    // Logout handler
+    const logoutBtn = document.getElementById('logout-btn');
+    if (logoutBtn) {
+      logoutBtn.addEventListener('click', (e) => {
+        e.preventDefault();
+        Auth.logout();
+        Navbar.render();
+        Router.navigate('/');
+        Toast.success('Logged out');
+      });
+    }
+
+    // Highlight active link
+    Navbar.setActive();
+  },
+
+  setActive() {
+    const hash = window.location.hash || '#/';
+    const page = hash.replace('#/', '').split('/')[0] || 'home';
+
+    document.querySelectorAll('.navbar__link').forEach((link) => {
+      link.classList.toggle('active', link.dataset.page === page);
     });
   },
 };

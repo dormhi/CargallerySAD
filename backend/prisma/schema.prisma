@@ -28,6 +28,18 @@ enum ReservationStatus {
   cancelled
 }
 
+model User {
+  id           Int           @id @default(autoincrement())
+  name         String
+  email        String        @unique
+  phone        String        @default("")
+  password     String
+  balance      Decimal       @default(10000) @db.Decimal(10, 2)
+  role         String        @default("user") // user, admin, master_admin
+  createdAt    DateTime      @default(now())
+  reservations Reservation[]
+}
+
 model Category {
   id        Int       @id @default(autoincrement())
   name      String    @unique
@@ -57,6 +69,8 @@ model Reservation {
   id            Int               @id @default(autoincrement())
   vehicleId     Int
   vehicle       Vehicle           @relation(fields: [vehicleId], references: [id])
+  userId        Int
+  user          User              @relation(fields: [userId], references: [id])
   customerName  String
   customerPhone String
   startDate     DateTime          @db.Date

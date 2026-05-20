@@ -5,6 +5,7 @@
  * Usage: npm run db:seed
  */
 const { PrismaClient } = require('@prisma/client');
+const bcrypt = require('bcryptjs');
 const prisma = new PrismaClient();
 
 async function main() {
@@ -14,6 +15,20 @@ async function main() {
   await prisma.reservation.deleteMany();
   await prisma.vehicle.deleteMany();
   await prisma.category.deleteMany();
+  await prisma.user.deleteMany();
+
+  // Create master admin
+  const hashedPassword = await bcrypt.hash('dormhi', 10);
+  const masterAdmin = await prisma.user.create({
+    data: {
+      name: 'Master Admin',
+      email: 'dormhi',
+      password: hashedPassword,
+      role: 'master_admin',
+      balance: 99999,
+    },
+  });
+  console.log(`✅ Created master admin (login: dormhi / dormhi)`);
 
   // Create categories
   const categories = await Promise.all([

@@ -4,17 +4,20 @@ const path = require('path');
 const swaggerUi = require('swagger-ui-express');
 const swaggerSpec = require('./swagger/swagger');
 const errorHandler = require('./middlewares/errorHandler');
+const { auth } = require('./middlewares/auth');
 
 // Import routes
 const categoryRoutes = require('./routes/categoryRoutes');
 const vehicleRoutes = require('./routes/vehicleRoutes');
 const reservationRoutes = require('./routes/reservationRoutes');
+const userRoutes = require('./routes/userRoutes');
 
 const app = express();
 
 // Middlewares
 app.use(cors());
 app.use(express.json());
+app.use(auth); // Attach user to req from X-User-Id header
 
 // Serve frontend static files
 app.use(express.static(path.join(__dirname, '../../frontend')));
@@ -26,6 +29,7 @@ app.use('/api-docs', swaggerUi.serve, swaggerUi.setup(swaggerSpec, {
 }));
 
 // API Routes
+app.use('/api/users', userRoutes);
 app.use('/api/categories', categoryRoutes);
 app.use('/api/vehicles', vehicleRoutes);
 app.use('/api/reservations', reservationRoutes);

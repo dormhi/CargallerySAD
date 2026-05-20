@@ -19,8 +19,7 @@
         <span class="navbar__logo-text">CarGallery</span>
       </a>
       <ul class="navbar__links" id="navbar-links">
-        <li><a href="#/" class="navbar__link active" data-page="home">Home</a></li>
-        <li><a href="#/admin" class="navbar__link" data-page="admin">Admin</a></li>
+        <!-- Dynamically rendered by Navbar.js -->
       </ul>
     </div>
   </nav>
@@ -44,13 +43,17 @@
     </div>
   </div>
 
-  <!-- Scripts -->
+  <!-- Scripts (order matters) -->
+  <script src="/js/components/Auth.js"></script>
   <script src="/js/api.js"></script>
   <script src="/js/components/Toast.js"></script>
   <script src="/js/components/Modal.js"></script>
   <script src="/js/components/Navbar.js"></script>
   <script src="/js/components/VehicleCard.js"></script>
   <script src="/js/components/VehicleFilter.js"></script>
+  <script src="/js/pages/LoginPage.js"></script>
+  <script src="/js/pages/RegisterPage.js"></script>
+  <script src="/js/pages/DashboardPage.js"></script>
   <script src="/js/pages/HomePage.js"></script>
   <script src="/js/pages/VehicleDetailPage.js"></script>
   <script src="/js/pages/ReservationPage.js"></script>

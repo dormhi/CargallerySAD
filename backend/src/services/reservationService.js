@@ -4,6 +4,7 @@
  */
 const reservationRepository = require('../repositories/reservationRepository');
 const vehicleRepository = require('../repositories/vehicleRepository');
+const userRepository = require('../repositories/userRepository');
 const { calculateTotalPrice } = require('../utils/helpers');
 
 const reservationService = {
@@ -31,12 +32,12 @@ const reservationService = {
   /**
    * Create a new reservation
    * Business rules:
-   * 1. Vehicle must exist
-   * 2. Vehicle must be available
-   * 3. No overlapping reservations for the same vehicle
-   * 4. totalPrice is auto-calculated
+   * 1. Vehicle must exist and be available
+   * 2. No overlapping reservations
+   * 3. User must have sufficient balance
+   * 4. totalPrice is auto-calculated and deducted from balance
    */
-  async create(data) {
+  async create(data, user) {
     // Check vehicle exists
     const vehicle = await vehicleRepository.findById(data.vehicleId);
     if (!vehicle) {
@@ -78,10 +79,22 @@ const reservationService = {
       data.endDate
     );
 
+    // Check user balance
+    const currentUser = await userRepository.findById(user.id);
+    if (Number(currentUser.balance) < totalPrice) {
+      const error = new Error(`Insufficient balance. Required: $${totalPrice}, Available: $${Number(currentUser.balance).toFixed(2)}`);
+      error.statusCode = 400;
+      throw error;
+    }
+
+    // Deduct balance
+    await userRepository.updateBalance(user.id, Number(currentUser.balance) - totalPrice);
+
     return reservationRepository.create({
       vehicleId: data.vehicleId,
-      customerName: data.customerName,
-      customerPhone: data.customerPhone,
+      userId: user.id,
+      customerName: user.name,
+      customerPhone: user.phone || '',
       startDate: new Date(data.startDate),
       endDate: new Date(data.endDate),
       totalPrice,
@@ -90,19 +103,30 @@ const reservationService = {
 
   /**
    * Update reservation status
-   * @throws {Error} If reservation not found
+   * Refund balance if cancelled
    */
   async updateStatus(id, status) {
-    await this.getById(id);
+    const reservation = await reservationService.getById(id);
+
+    // Refund balance if cancelling
+    if (status === 'cancelled' && reservation.status !== 'cancelled') {
+      const user = await userRepository.findById(reservation.userId);
+      if (user) {
+        await userRepository.updateBalance(
+          user.id,
+          Number(user.balance) + Number(reservation.totalPrice)
+        );
+      }
+    }
+
     return reservationRepository.updateStatus(id, status);
   },
 
   /**
    * Delete a reservation
-   * @throws {Error} If reservation not found
    */
   async delete(id) {
-    await this.getById(id);
+    await reservationService.getById(id);
     return reservationRepository.delete(id);
   },
 };

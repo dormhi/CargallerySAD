@@ -835,6 +835,68 @@ input, select, textarea {
   color: var(--accent);
 }
 
+/* ---------- Auth Card ---------- */
+.auth-card {
+  max-width: 420px;
+  margin: var(--space-2xl) auto;
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+  padding: var(--space-2xl);
+}
+
+.auth-card__title {
+  font-size: 1.75rem;
+  font-weight: 700;
+  margin-bottom: var(--space-xs);
+  background: linear-gradient(135deg, var(--text-primary), var(--accent));
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+.auth-card__subtitle {
+  color: var(--text-muted);
+  margin-bottom: var(--space-xl);
+}
+
+.auth-card__footer {
+  text-align: center;
+  margin-top: var(--space-lg);
+  color: var(--text-muted);
+  font-size: 0.9rem;
+}
+
+/* ---------- Dashboard ---------- */
+.dashboard-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: var(--space-xl);
+}
+
+.dashboard-balance {
+  font-size: 2.5rem;
+  font-weight: 700;
+  color: var(--accent);
+}
+
+/* ---------- Navbar User ---------- */
+.navbar__user {
+  display: flex;
+  align-items: center;
+  gap: var(--space-md);
+}
+
+.navbar__user-name {
+  color: var(--text-muted);
+  font-size: 0.85rem;
+  font-weight: 500;
+}
+
+.navbar__logout {
+  color: var(--danger) !important;
+}
+
 /* ---------- Responsive ---------- */
 @media (max-width: 768px) {
   .vehicle-detail {

@@ -20,8 +20,8 @@ const RegisterPage = {
               <input type="text" id="reg-name" class="form__input" placeholder="John Doe" required />
             </div>
             <div class="form__group">
-              <label class="form__label" for="reg-email">Email</label>
-              <input type="text" id="reg-email" class="form__input" placeholder="your@email.com" required />
+              <label class="form__label" for="reg-email">Username</label>
+              <input type="text" id="reg-email" class="form__input" placeholder="Choose a username" required minlength="2" />
             </div>
             <div class="form__group">
               <label class="form__label" for="reg-phone">Phone</label>
@@ -49,9 +49,7 @@ const RegisterPage = {
 
       // Client-side validation
       if (!name || name.length < 2) { errorEl.textContent = 'Name must be at least 2 characters'; return; }
-      if (!email) { errorEl.textContent = 'Email is required'; return; }
-      const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-      if (!emailRegex.test(email)) { errorEl.textContent = 'Please enter a valid email address'; return; }
+      if (!email || email.length < 2) { errorEl.textContent = 'Username must be at least 2 characters'; return; }
       if (phone && !/^[0-9+\-() ]{7,20}$/.test(phone)) { errorEl.textContent = 'Please enter a valid phone number'; return; }
       if (!password || password.length < 4) { errorEl.textContent = 'Password must be at least 4 characters'; return; }
       errorEl.textContent = '';

@@ -322,7 +322,7 @@ const AdminPage = {
       Modal.open('Create Admin Account', `
         <form class="form" id="admin-form">
           <div class="form__group"><label class="form__label">Name *</label><input type="text" id="adm-name" class="form__input" required /></div>
-          <div class="form__group"><label class="form__label">Email / Username *</label><input type="text" id="adm-email" class="form__input" required /></div>
+          <div class="form__group"><label class="form__label">Username *</label><input type="text" id="adm-email" class="form__input" required /></div>
           <div class="form__group"><label class="form__label">Password *</label><input type="password" id="adm-pass" class="form__input" required minlength="4" /></div>
           <span class="form__error" id="adm-error"></span>
           <button type="submit" class="btn btn--primary btn--block">Create Admin</button>
@@ -408,7 +408,7 @@ const AdminPage = {
           <input type="text" id="eu-name" class="form__input" value="${user.name}" required />
         </div>
         <div class="form__group">
-          <label class="form__label">Email / Username</label>
+          <label class="form__label">Username</label>
           <input type="text" id="eu-email" class="form__input" value="${user.email}" required />
         </div>
         <div class="form__group">

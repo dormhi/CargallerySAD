@@ -10,24 +10,20 @@ const createReservationSchema = Joi.object({
     'number.positive': 'Vehicle ID must be a positive number',
     'any.required': 'Vehicle ID is required',
   }),
-  customerName: Joi.string().trim().min(2).max(100).required().messages({
-    'string.empty': 'Customer name is required',
+  customerName: Joi.string().trim().min(2).max(100).optional().messages({
     'string.min': 'Customer name must be at least 2 characters',
     'string.max': 'Customer name must be at most 100 characters',
-    'any.required': 'Customer name is required',
   }),
   customerPhone: Joi.string()
     .trim()
     .pattern(/^[0-9+\-() ]{7,20}$/)
-    .required()
+    .allow('', null)
+    .optional()
     .messages({
-      'string.empty': 'Customer phone is required',
       'string.pattern.base': 'Please enter a valid phone number',
-      'any.required': 'Customer phone is required',
     }),
-  startDate: Joi.date().iso().min('now').required().messages({
+  startDate: Joi.date().iso().required().messages({
     'date.base': 'Start date must be a valid date',
-    'date.min': 'Start date cannot be in the past',
     'any.required': 'Start date is required',
   }),
   endDate: Joi.date().iso().greater(Joi.ref('startDate')).required().messages({

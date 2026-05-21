@@ -58,12 +58,12 @@ const ReservationPage = {
                   </div>
                   <div class="form__row">
                     <div class="form__group">
-                      <label class="form__label" for="res-start">Start Date *</label>
-                      <input type="date" id="res-start" class="form__input" min="${today}" required />
+                      <label class="form__label" for="res-start">Start Date & Time *</label>
+                      <input type="datetime-local" id="res-start" class="form__input" min="${today}T00:00" required />
                     </div>
                     <div class="form__group">
-                      <label class="form__label" for="res-end">End Date *</label>
-                      <input type="date" id="res-end" class="form__input" min="${today}" required />
+                      <label class="form__label" for="res-end">End Date & Time *</label>
+                      <input type="datetime-local" id="res-end" class="form__input" min="${today}T00:00" required />
                     </div>
                   </div>
                   <span class="form__error" id="error-general"></span>
@@ -118,7 +118,8 @@ const ReservationPage = {
     const totalEl = document.getElementById('res-total');
 
     if (!start || !end) { daysEl.textContent = '— days'; totalEl.textContent = '$0.00'; return; }
-    const days = Math.ceil((new Date(end) - new Date(start)) / (1000 * 60 * 60 * 24));
+    const diffMs = new Date(end) - new Date(start);
+    const days = Math.ceil(diffMs / (1000 * 60 * 60 * 24));
     if (days <= 0) { daysEl.textContent = '— days'; totalEl.textContent = '$0.00'; return; }
     const total = days * Number(ReservationPage.vehicle.pricePerDay);
     daysEl.textContent = `${days} day${days !== 1 ? 's' : ''}`;
@@ -138,10 +139,12 @@ const ReservationPage = {
     submitBtn.textContent = 'Processing...';
 
     try {
+      const startISO = new Date(start).toISOString();
+      const endISO = new Date(end).toISOString();
       await api.createReservation({
         vehicleId: ReservationPage.vehicle.id,
-        startDate: start,
-        endDate: end,
+        startDate: startISO,
+        endDate: endISO,
       });
       Toast.success('Reservation created! Balance deducted.');
       Navbar.render();

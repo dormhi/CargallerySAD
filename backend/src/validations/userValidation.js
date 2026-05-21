@@ -33,10 +33,9 @@ const registerSchema = Joi.object({
 });
 
 const loginSchema = Joi.object({
-  email: Joi.string().trim().email().required().messages({
-    'string.empty': 'Email is required',
-    'string.email': 'Please enter a valid email address',
-    'any.required': 'Email is required',
+  email: Joi.string().trim().min(1).required().messages({
+    'string.empty': 'Email or username is required',
+    'any.required': 'Email or username is required',
   }),
   password: Joi.string().required().messages({
     'string.empty': 'Password is required',
@@ -72,4 +71,23 @@ const createAdminSchema = Joi.object({
   }),
 });
 
-module.exports = { registerSchema, loginSchema, addBalanceSchema, createAdminSchema };
+const updateUserSchema = Joi.object({
+  name: Joi.string().trim().min(2).max(50).messages({
+    'string.min': 'Name must be at least 2 characters',
+    'string.max': 'Name must be at most 50 characters',
+  }),
+  email: Joi.string().trim().min(1).messages({
+    'string.empty': 'Email cannot be empty',
+  }),
+  phone: Joi.string().trim().pattern(/^[0-9+\-() ]{7,20}$/).allow('', null).optional().messages({
+    'string.pattern.base': 'Please enter a valid phone number',
+  }),
+  balance: Joi.number().min(0).precision(2).messages({
+    'number.base': 'Balance must be a number',
+    'number.min': 'Balance cannot be negative',
+  }),
+}).min(1).messages({
+  'object.min': 'At least one field must be provided for update',
+});
+
+module.exports = { registerSchema, loginSchema, addBalanceSchema, createAdminSchema, updateUserSchema };

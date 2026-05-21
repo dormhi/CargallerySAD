@@ -7,7 +7,7 @@ const router = express.Router();
 const userController = require('../controllers/userController');
 const validate = require('../middlewares/validate');
 const { requireAuth, requireAdmin, requireMasterAdmin } = require('../middlewares/auth');
-const { registerSchema, loginSchema, addBalanceSchema, createAdminSchema } = require('../validations/userValidation');
+const { registerSchema, loginSchema, addBalanceSchema, createAdminSchema, updateUserSchema } = require('../validations/userValidation');
 
 /**
  * @swagger
@@ -218,6 +218,54 @@ router.post('/balance', requireAuth, validate(addBalanceSchema), userController.
 
 /**
  * @swagger
+ * /api/users/{id}:
+ *   put:
+ *     summary: Update user information (admin only)
+ *     tags: [Users]
+ *     parameters:
+ *       - in: header
+ *         name: X-User-Id
+ *         required: true
+ *         schema:
+ *           type: integer
+ *         description: Admin user ID
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         schema:
+ *           type: integer
+ *         description: Target user ID to update
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             properties:
+ *               name:
+ *                 type: string
+ *                 example: "Updated Name"
+ *               email:
+ *                 type: string
+ *                 example: "newemail@example.com"
+ *               phone:
+ *                 type: string
+ *                 example: "+90 555 999 8888"
+ *               balance:
+ *                 type: number
+ *                 example: 5000.00
+ *     responses:
+ *       200:
+ *         description: User updated
+ *       403:
+ *         description: Insufficient permissions
+ *       404:
+ *         description: User not found
+ */
+router.put('/:id', requireAdmin, validate(updateUserSchema), userController.updateUser);
+
+/**
+ * @swagger
  * /api/users:
  *   get:
  *     summary: Get all users (admin only)
@@ -298,5 +346,36 @@ router.get('/', requireAdmin, userController.getAll);
  *         description: Email is already taken
  */
 router.post('/create-admin', requireMasterAdmin, validate(createAdminSchema), userController.createAdmin);
+
+/**
+ * @swagger
+ * /api/users/{id}:
+ *   delete:
+ *     summary: Delete a user (admin only)
+ *     tags: [Users]
+ *     parameters:
+ *       - in: header
+ *         name: X-User-Id
+ *         required: true
+ *         schema:
+ *           type: integer
+ *         description: Admin user ID
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         schema:
+ *           type: integer
+ *         description: Target user ID to delete
+ *     responses:
+ *       200:
+ *         description: User deleted
+ *       400:
+ *         description: Cannot delete own account
+ *       403:
+ *         description: Insufficient permissions
+ *       404:
+ *         description: User not found
+ */
+router.delete('/:id', requireAdmin, userController.deleteUser);
 
 module.exports = router;

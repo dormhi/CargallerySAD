@@ -24,8 +24,23 @@ const userRepository = {
     });
   },
 
-  async findAll() {
+  async update(id, data) {
+    return prisma.user.update({
+      where: { id: Number(id) },
+      data,
+    });
+  },
+
+  async delete(id) {
+    return prisma.user.delete({
+      where: { id: Number(id) },
+    });
+  },
+
+  async findAll(excludeRole = null) {
+    const where = excludeRole ? { role: { not: excludeRole } } : {};
     return prisma.user.findMany({
+      where,
       select: {
         id: true, name: true, email: true, phone: true,
         balance: true, role: true, createdAt: true,

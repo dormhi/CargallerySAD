@@ -38,9 +38,7 @@ const LoginPage = {
       const errorEl = document.getElementById('login-error');
 
       // Client-side validation
-      if (!email) { errorEl.textContent = 'Email is required'; return; }
-      const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-      if (!emailRegex.test(email)) { errorEl.textContent = 'Please enter a valid email address'; return; }
+      if (!email) { errorEl.textContent = 'Email or username is required'; return; }
       if (!password) { errorEl.textContent = 'Password is required'; return; }
       errorEl.textContent = '';
 

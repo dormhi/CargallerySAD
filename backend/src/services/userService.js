@@ -87,6 +87,38 @@ const userService = {
   },
 
   /**
+   * Update user info (admin only)
+   * Admins can edit regular users only
+   * Master admins can edit anyone except other master admins
+   */
+  async updateUser(targetId, data, requester) {
+    const target = await userRepository.findById(targetId);
+    if (!target) {
+      const error = new Error('User not found');
+      error.statusCode = 404;
+      throw error;
+    }
+
+    // Permission checks
+    if (requester.role === 'admin' && target.role !== 'user') {
+      const error = new Error('You can only edit regular users');
+      error.statusCode = 403;
+      throw error;
+    }
+
+    // Build update data (only allowed fields)
+    const updateData = {};
+    if (data.name) updateData.name = data.name;
+    if (data.email) updateData.email = data.email;
+    if (data.phone !== undefined) updateData.phone = data.phone;
+    if (data.balance !== undefined) updateData.balance = data.balance;
+
+    const updated = await userRepository.update(targetId, updateData);
+    const { password, ...userWithoutPassword } = updated;
+    return userWithoutPassword;
+  },
+
+  /**
    * Create admin account (master_admin only)
    */
   async createAdmin(data) {
@@ -112,9 +144,48 @@ const userService = {
 
   /**
    * Get all users (admin)
+   * Normal admins don't see master_admin accounts
    */
-  async getAll() {
-    return userRepository.findAll();
+  async getAll(requesterRole) {
+    const excludeRole = requesterRole === 'admin' ? 'master_admin' : null;
+    return userRepository.findAll(excludeRole);
+  },
+
+  /**
+   * Delete a user (admin only)
+   * Admins can only delete regular users
+   * Master admins can delete anyone except master_admin
+   * Cannot delete users with active reservations
+   */
+  async deleteUser(targetId, requester) {
+    const target = await userRepository.findById(targetId);
+    if (!target) {
+      const error = new Error('User not found');
+      error.statusCode = 404;
+      throw error;
+    }
+
+    // Cannot delete yourself
+    if (target.id === requester.id) {
+      const error = new Error('You cannot delete your own account');
+      error.statusCode = 400;
+      throw error;
+    }
+
+    // Permission checks
+    if (target.role === 'master_admin') {
+      const error = new Error('Cannot delete master admin accounts');
+      error.statusCode = 403;
+      throw error;
+    }
+
+    if (requester.role === 'admin' && target.role !== 'user') {
+      const error = new Error('You can only delete regular users');
+      error.statusCode = 403;
+      throw error;
+    }
+
+    return userRepository.delete(targetId);
   },
 };
 

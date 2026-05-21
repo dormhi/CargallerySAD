@@ -27,6 +27,7 @@ const AdminPage = {
           <button class="tabs__tab active" data-tab="vehicles">Vehicles</button>
           <button class="tabs__tab" data-tab="categories">Categories</button>
           <button class="tabs__tab" data-tab="reservations">Reservations</button>
+          <button class="tabs__tab" data-tab="users">Users</button>
           ${isMaster ? '<button class="tabs__tab" data-tab="admins">Manage Admins</button>' : ''}
         </div>
         <div id="admin-content"></div>
@@ -53,6 +54,7 @@ const AdminPage = {
         case 'vehicles': await AdminPage.renderVehicles(content); break;
         case 'categories': await AdminPage.renderCategories(content); break;
         case 'reservations': await AdminPage.renderReservations(content); break;
+        case 'users': await AdminPage.renderUsers(content); break;
         case 'admins': await AdminPage.renderAdmins(content); break;
       }
     } catch (error) {
@@ -308,19 +310,6 @@ const AdminPage = {
           </tr>
         `).join('')}</tbody>
       </table></div>
-
-      <h3 style="margin-top:var(--space-2xl);margin-bottom:var(--space-lg);">All Users</h3>
-      <div class="table-wrapper"><table class="table">
-        <thead><tr><th>ID</th><th>Name</th><th>Email</th><th>Balance</th><th>Role</th><th>Rentals</th></tr></thead>
-        <tbody>${users.map((u) => `
-          <tr>
-            <td>${u.id}</td><td>${u.name}</td><td>${u.email}</td>
-            <td>$${Number(u.balance).toFixed(2)}</td>
-            <td><span class="badge badge--${u.role === 'master_admin' ? 'approved' : u.role === 'admin' ? 'pending' : 'cancelled'}">${u.role.replace('_', ' ')}</span></td>
-            <td>${u._count?.reservations || 0}</td>
-          </tr>
-        `).join('')}</tbody>
-      </table></div>
     `;
 
     document.getElementById('add-admin-btn').addEventListener('click', () => {
@@ -349,5 +338,155 @@ const AdminPage = {
         }
       });
     });
+  },
+
+  // ── Users Tab (All Admins) ──
+  async renderUsers(container) {
+    const response = await api.getUsers();
+    const users = response.data;
+
+    container.innerHTML = `
+      <div class="actions-bar"><span class="actions-bar__count">${users.length} user(s)</span></div>
+      <div class="table-wrapper"><table class="table">
+        <thead><tr><th>ID</th><th>Name</th><th>Email</th><th>Phone</th><th>Balance</th><th>Role</th><th>Rentals</th><th>Actions</th></tr></thead>
+        <tbody>${users.length === 0 ? '<tr><td colspan="8" style="text-align:center;color:var(--text-muted);">No users</td></tr>' :
+          users.map((u) => `
+          <tr>
+            <td>${u.id}</td><td>${u.name}</td><td>${u.email}</td>
+            <td>${u.phone || '—'}</td>
+            <td>$${Number(u.balance).toFixed(2)}</td>
+            <td><span class="badge badge--${u.role === 'master_admin' ? 'approved' : u.role === 'admin' ? 'pending' : 'cancelled'}">${u.role.replace('_', ' ')}</span></td>
+            <td>${u._count?.reservations || 0}</td>
+            <td>
+              <button class="btn btn--secondary btn--sm edit-user" data-id="${u.id}" data-name="${u.name}" data-email="${u.email}" data-phone="${u.phone || ''}" data-balance="${u.balance}" data-role="${u.role}">Edit</button>
+              ${u._count?.reservations > 0 ? `<button class="btn btn--primary btn--sm view-user-res" data-id="${u.id}" data-name="${u.name}">Rentals</button>` : ''}
+              <button class="btn btn--danger btn--sm delete-user" data-id="${u.id}" data-name="${u.name}">Delete</button>
+            </td>
+          </tr>
+        `).join('')}</tbody>
+      </table></div>
+    `;
+
+    container.querySelectorAll('.edit-user').forEach((btn) => btn.addEventListener('click', () => {
+      AdminPage.showUserEditForm({
+        id: Number(btn.dataset.id),
+        name: btn.dataset.name,
+        email: btn.dataset.email,
+        phone: btn.dataset.phone,
+        balance: btn.dataset.balance,
+        role: btn.dataset.role,
+      });
+    }));
+
+    container.querySelectorAll('.view-user-res').forEach((btn) => btn.addEventListener('click', () => {
+      AdminPage.showUserReservations(Number(btn.dataset.id), btn.dataset.name);
+    }));
+
+    container.querySelectorAll('.delete-user').forEach((btn) => btn.addEventListener('click', async () => {
+      if (!confirm(`Delete user "${btn.dataset.name}"? This action cannot be undone.`)) return;
+      try {
+        await api.deleteUser(btn.dataset.id);
+        Toast.success('User deleted');
+        AdminPage.loadTab();
+      } catch (error) {
+        Toast.error(error.message);
+      }
+    }));
+  },
+
+  showUserEditForm(user) {
+    Modal.open(`Edit User — ${user.name}`, `
+      <form class="form" id="edit-user-form">
+        <div class="form__group">
+          <label class="form__label">Name</label>
+          <input type="text" id="eu-name" class="form__input" value="${user.name}" required />
+        </div>
+        <div class="form__group">
+          <label class="form__label">Email / Username</label>
+          <input type="text" id="eu-email" class="form__input" value="${user.email}" required />
+        </div>
+        <div class="form__group">
+          <label class="form__label">Phone</label>
+          <input type="tel" id="eu-phone" class="form__input" value="${user.phone}" />
+        </div>
+        <div class="form__group">
+          <label class="form__label">Balance ($)</label>
+          <input type="number" id="eu-balance" class="form__input" value="${Number(user.balance).toFixed(2)}" step="0.01" min="0" />
+        </div>
+        <div class="form__group">
+          <label class="form__label">Role</label>
+          <input type="text" class="form__input" value="${user.role.replace('_', ' ')}" disabled />
+        </div>
+        <span class="form__error" id="eu-error"></span>
+        <button type="submit" class="btn btn--primary btn--block">Update User</button>
+      </form>
+    `);
+
+    document.getElementById('edit-user-form').addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const data = {
+        name: document.getElementById('eu-name').value.trim(),
+        email: document.getElementById('eu-email').value.trim(),
+        phone: document.getElementById('eu-phone').value.trim(),
+        balance: Number(document.getElementById('eu-balance').value),
+      };
+      if (!data.name || data.name.length < 2) { document.getElementById('eu-error').textContent = 'Name must be at least 2 characters'; return; }
+      if (!data.email) { document.getElementById('eu-error').textContent = 'Email is required'; return; }
+      try {
+        await api.updateUser(user.id, data);
+        Toast.success('User updated');
+        Modal.close();
+        AdminPage.loadTab();
+      } catch (error) {
+        document.getElementById('eu-error').textContent = error.message;
+      }
+    });
+  },
+
+  async showUserReservations(userId, userName) {
+    try {
+      const response = await api.getReservations();
+      const userRes = response.data.filter((r) => r.userId === userId);
+      const today = new Date();
+
+      const rows = userRes.length === 0 ? '<tr><td colspan="7" style="text-align:center;color:var(--text-muted);">No reservations</td></tr>' :
+        userRes.map((r) => {
+          const endDate = new Date(r.endDate);
+          const diffDays = Math.ceil((endDate - today) / (1000 * 60 * 60 * 24));
+          const remaining = r.status === 'cancelled' ? '—' : diffDays > 0 ? `${diffDays} days` : 'Done';
+          return `
+            <tr>
+              <td>${r.vehicle?.brand || ''} ${r.vehicle?.model || ''}</td>
+              <td>${new Date(r.startDate).toLocaleDateString()}</td>
+              <td>${endDate.toLocaleDateString()}</td>
+              <td><strong>${remaining}</strong></td>
+              <td>$${Number(r.totalPrice).toFixed(2)}</td>
+              <td><span class="badge badge--${r.status}">${r.status}</span></td>
+              <td>
+                ${r.status === 'pending' ? `<button class="btn btn--success btn--sm modal-approve" data-id="${r.id}">Approve</button>` : ''}
+                ${r.status !== 'cancelled' ? `<button class="btn btn--danger btn--sm modal-cancel" data-id="${r.id}">Cancel</button>` : ''}
+              </td>
+            </tr>
+          `;
+        }).join('');
+
+      Modal.open(`Reservations — ${userName}`, `
+        <div class="table-wrapper"><table class="table">
+          <thead><tr><th>Vehicle</th><th>Start</th><th>End</th><th>Remaining</th><th>Total</th><th>Status</th><th>Actions</th></tr></thead>
+          <tbody>${rows}</tbody>
+        </table></div>
+      `);
+
+      document.querySelectorAll('.modal-approve').forEach((btn) => btn.addEventListener('click', async () => {
+        try { await api.updateReservationStatus(btn.dataset.id, 'approved'); Toast.success('Approved'); Modal.close(); AdminPage.loadTab(); }
+        catch (error) { Toast.error(error.message); }
+      }));
+      document.querySelectorAll('.modal-cancel').forEach((btn) => btn.addEventListener('click', async () => {
+        try { await api.updateReservationStatus(btn.dataset.id, 'cancelled'); Toast.success('Cancelled & refunded'); Modal.close(); AdminPage.loadTab(); }
+        catch (error) { Toast.error(error.message); }
+      }));
+    } catch (error) {
+      Toast.error('Failed to load reservations');
+    }
   },
 };

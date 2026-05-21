@@ -42,6 +42,15 @@ const userController = {
     }
   },
 
+  async updateUser(req, res, next) {
+    try {
+      const user = await userService.updateUser(Number(req.params.id), req.body, req.user);
+      res.json(successResponse(user));
+    } catch (error) {
+      next(error);
+    }
+  },
+
   async createAdmin(req, res, next) {
     try {
       const admin = await userService.createAdmin(req.body);
@@ -53,8 +62,17 @@ const userController = {
 
   async getAll(req, res, next) {
     try {
-      const users = await userService.getAll();
+      const users = await userService.getAll(req.user.role);
       res.json(successResponse(users, users.length));
+    } catch (error) {
+      next(error);
+    }
+  },
+
+  async deleteUser(req, res, next) {
+    try {
+      await userService.deleteUser(Number(req.params.id), req.user);
+      res.json(successResponse({ message: 'User deleted successfully' }));
     } catch (error) {
       next(error);
     }

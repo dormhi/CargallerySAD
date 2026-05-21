@@ -68,6 +68,14 @@ const api = {
     return api.request('/users/create-admin', { method: 'POST', body: data });
   },
 
+  updateUser(id, data) {
+    return api.request(`/users/${id}`, { method: 'PUT', body: data });
+  },
+
+  deleteUser(id) {
+    return api.request(`/users/${id}`, { method: 'DELETE' });
+  },
+
   // ── Categories ──
 
   getCategories() {

@@ -360,7 +360,7 @@ const AdminPage = {
             <td>
               <button class="btn btn--secondary btn--sm edit-user" data-id="${u.id}" data-name="${u.name}" data-email="${u.email}" data-phone="${u.phone || ''}" data-balance="${u.balance}" data-role="${u.role}">Edit</button>
               ${u._count?.reservations > 0 ? `<button class="btn btn--primary btn--sm view-user-res" data-id="${u.id}" data-name="${u.name}">Rentals</button>` : ''}
-              <button class="btn btn--danger btn--sm delete-user" data-id="${u.id}" data-name="${u.name}">Delete</button>
+              ${u.role !== 'master_admin' && u.id !== Auth.getUserId() ? `<button class="btn btn--danger btn--sm delete-user" data-id="${u.id}" data-name="${u.name}">Delete</button>` : ''}
             </td>
           </tr>
         `).join('')}</tbody>

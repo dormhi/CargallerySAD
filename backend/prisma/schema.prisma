@@ -25,6 +25,7 @@ enum Transmission {
 enum ReservationStatus {
   pending
   approved
+  cancel_requested
   cancelled
 }
 

@@ -26,19 +26,25 @@ const DashboardPage = {
       const today = new Date();
 
       const reservationRows = myReservations.length === 0
-        ? `<tr><td colspan="6" style="text-align:center;color:var(--text-muted);">No rentals yet</td></tr>`
+        ? `<tr><td colspan="7" style="text-align:center;color:var(--text-muted);">No rentals yet</td></tr>`
         : myReservations.map((r) => {
             const endDate = new Date(r.endDate);
             const diffDays = Math.ceil((endDate - today) / (1000 * 60 * 60 * 24));
             const remaining = r.status === 'cancelled' ? '—' : diffDays > 0 ? `${diffDays} days` : 'Completed';
+            const statusLabel = r.status === 'cancel_requested' ? 'Cancel Req.' : r.status;
+            const canRequestCancel = (r.status === 'pending' || r.status === 'approved') && diffDays > 0;
             return `
               <tr>
                 <td>${r.vehicle?.brand || ''} ${r.vehicle?.model || ''}</td>
                 <td>${new Date(r.startDate).toLocaleDateString()}</td>
                 <td>${endDate.toLocaleDateString()}</td>
                 <td>$${Number(r.totalPrice).toFixed(2)}</td>
-                <td><span class="badge badge--${r.status}">${r.status}</span></td>
+                <td><span class="badge badge--${r.status}">${statusLabel}</span></td>
                 <td>${remaining}</td>
+                <td>
+                  ${canRequestCancel ? `<button class="btn btn--danger btn--sm req-cancel" data-id="${r.id}">Request Cancel</button>` : ''}
+                  ${r.status === 'cancel_requested' ? '<span style="color:var(--warning);font-size:0.8rem;">⏳ Awaiting admin</span>' : ''}
+                </td>
               </tr>
             `;
           }).join('');
@@ -95,6 +101,7 @@ const DashboardPage = {
                     <th>Total</th>
                     <th>Status</th>
                     <th>Remaining</th>
+                    <th>Actions</th>
                   </tr>
                 </thead>
                 <tbody>${reservationRows}</tbody>
@@ -116,6 +123,18 @@ const DashboardPage = {
           Toast.error(error.message);
         }
       });
+
+      // Cancel request buttons
+      document.querySelectorAll('.req-cancel').forEach((btn) => btn.addEventListener('click', async () => {
+        if (!confirm('Request cancellation for this reservation? Admin will review your request.')) return;
+        try {
+          await api.updateReservationStatus(btn.dataset.id, 'cancel_requested');
+          Toast.success('Cancellation request sent to admin');
+          DashboardPage.render();
+        } catch (error) {
+          Toast.error(error.message);
+        }
+      }));
     } catch (error) {
       app.innerHTML = `<div class="container"><div class="empty-state"><p>Failed to load dashboard</p></div></div>`;
     }

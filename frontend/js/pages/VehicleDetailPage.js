@@ -28,23 +28,24 @@ const VehicleDetailPage = {
       // Build active reservations list
       let reservationsHTML = '';
       if (vehicle.reservations && vehicle.reservations.length > 0) {
+        const isAdmin = Auth.isAdmin();
         const rows = vehicle.reservations.map((r) => `
           <tr>
-            <td>${r.customerName}</td>
+            <td>${isAdmin ? r.customerName : 'Reserved'}</td>
             <td>${new Date(r.startDate).toLocaleDateString()}</td>
             <td>${new Date(r.endDate).toLocaleDateString()}</td>
-            <td><span class="badge badge--${r.status}">${r.status}</span></td>
+            <td><span class="badge badge--${r.status}">${r.status === 'cancel_requested' ? 'cancel req.' : r.status}</span></td>
           </tr>
         `).join('');
 
         reservationsHTML = `
           <div style="margin-top: var(--space-2xl);">
-            <h3 style="margin-bottom: var(--space-md);">Active Reservations</h3>
+            <h3 style="margin-bottom: var(--space-md);">${isAdmin ? 'Active Reservations' : 'Reservation Schedule'}</h3>
             <div class="table-wrapper">
               <table class="table">
                 <thead>
                   <tr>
-                    <th>Customer</th>
+                    <th>${isAdmin ? 'Customer' : 'Status'}</th>
                     <th>Start Date</th>
                     <th>End Date</th>
                     <th>Status</th>

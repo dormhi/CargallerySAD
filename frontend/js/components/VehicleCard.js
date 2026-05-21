@@ -36,7 +36,7 @@ const VehicleCard = {
               $${Number(vehicle.pricePerDay).toFixed(2)} <span>/ day</span>
             </div>
             <span class="vehicle-card__status vehicle-card__status--${statusClass}">
-              ${statusText}
+              ${vehicle.available ? '✓ Available' : '✗ Unavailable'}
             </span>
           </div>
         </div>

@@ -53,6 +53,15 @@ const reservationService = {
       throw error;
     }
 
+    // Check start date is not in the past
+    const now = new Date();
+    const startDate = new Date(data.startDate);
+    if (startDate < now) {
+      const error = new Error('Start date cannot be in the past');
+      error.statusCode = 400;
+      throw error;
+    }
+
     // Check for overlapping reservations
     const overlapping = await reservationRepository.findOverlapping(
       data.vehicleId,

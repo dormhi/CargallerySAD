@@ -58,12 +58,22 @@ const ReservationPage = {
                   </div>
                   <div class="form__row">
                     <div class="form__group">
-                      <label class="form__label" for="res-start">Start Date & Time *</label>
-                      <input type="datetime-local" id="res-start" class="form__input" min="${today}T00:00" required />
+                      <label class="form__label" for="res-start-date">Start Date *</label>
+                      <input type="date" id="res-start-date" class="form__input" min="${today}" required />
                     </div>
                     <div class="form__group">
-                      <label class="form__label" for="res-end">End Date & Time *</label>
-                      <input type="datetime-local" id="res-end" class="form__input" min="${today}T00:00" required />
+                      <label class="form__label" for="res-start-time">Start Time *</label>
+                      <input type="time" id="res-start-time" class="form__input" value="09:00" required />
+                    </div>
+                  </div>
+                  <div class="form__row">
+                    <div class="form__group">
+                      <label class="form__label" for="res-end-date">End Date *</label>
+                      <input type="date" id="res-end-date" class="form__input" min="${today}" required />
+                    </div>
+                    <div class="form__group">
+                      <label class="form__label" for="res-end-time">End Time *</label>
+                      <input type="time" id="res-end-time" class="form__input" value="09:00" required />
                     </div>
                   </div>
                   <span class="form__error" id="error-general"></span>
@@ -100,8 +110,10 @@ const ReservationPage = {
         </div>
       `;
 
-      document.getElementById('res-start').addEventListener('change', () => ReservationPage.updatePreview());
-      document.getElementById('res-end').addEventListener('change', () => ReservationPage.updatePreview());
+      document.getElementById('res-start-date').addEventListener('change', () => ReservationPage.updatePreview());
+      document.getElementById('res-end-date').addEventListener('change', () => ReservationPage.updatePreview());
+      document.getElementById('res-start-time').addEventListener('change', () => ReservationPage.updatePreview());
+      document.getElementById('res-end-time').addEventListener('change', () => ReservationPage.updatePreview());
       document.getElementById('reservation-form').addEventListener('submit', (e) => {
         e.preventDefault();
         ReservationPage.handleSubmit();
@@ -112,14 +124,13 @@ const ReservationPage = {
   },
 
   updatePreview() {
-    const start = document.getElementById('res-start').value;
-    const end = document.getElementById('res-end').value;
+    const startDate = document.getElementById('res-start-date').value;
+    const endDate = document.getElementById('res-end-date').value;
     const daysEl = document.getElementById('res-days');
     const totalEl = document.getElementById('res-total');
 
-    if (!start || !end) { daysEl.textContent = '— days'; totalEl.textContent = '$0.00'; return; }
-    const diffMs = new Date(end) - new Date(start);
-    const days = Math.ceil(diffMs / (1000 * 60 * 60 * 24));
+    if (!startDate || !endDate) { daysEl.textContent = '— days'; totalEl.textContent = '$0.00'; return; }
+    const days = Math.ceil((new Date(endDate) - new Date(startDate)) / (1000 * 60 * 60 * 24));
     if (days <= 0) { daysEl.textContent = '— days'; totalEl.textContent = '$0.00'; return; }
     const total = days * Number(ReservationPage.vehicle.pricePerDay);
     daysEl.textContent = `${days} day${days !== 1 ? 's' : ''}`;
@@ -127,10 +138,25 @@ const ReservationPage = {
   },
 
   async handleSubmit() {
-    const start = document.getElementById('res-start').value;
-    const end = document.getElementById('res-end').value;
-    if (!start || !end || new Date(end) <= new Date(start)) {
-      document.getElementById('error-general').textContent = 'Please select valid dates';
+    const startDate = document.getElementById('res-start-date').value;
+    const startTime = document.getElementById('res-start-time').value;
+    const endDate = document.getElementById('res-end-date').value;
+    const endTime = document.getElementById('res-end-time').value;
+    const errorEl = document.getElementById('error-general');
+
+    if (!startDate || !endDate) { errorEl.textContent = 'Please select valid dates'; return; }
+
+    const startFull = new Date(`${startDate}T${startTime}`);
+    const endFull = new Date(`${endDate}T${endTime}`);
+    const now = new Date();
+
+    // Past date check
+    if (startFull < now) {
+      errorEl.textContent = 'Start date/time cannot be in the past';
+      return;
+    }
+    if (endFull <= startFull) {
+      errorEl.textContent = 'End date must be after start date';
       return;
     }
 
@@ -139,18 +165,16 @@ const ReservationPage = {
     submitBtn.textContent = 'Processing...';
 
     try {
-      const startISO = new Date(start).toISOString();
-      const endISO = new Date(end).toISOString();
       await api.createReservation({
         vehicleId: ReservationPage.vehicle.id,
-        startDate: startISO,
-        endDate: endISO,
+        startDate: startFull.toISOString(),
+        endDate: endFull.toISOString(),
       });
       Toast.success('Reservation created! Balance deducted.');
       Navbar.render();
       Router.navigate('/dashboard');
     } catch (error) {
-      document.getElementById('error-general').textContent = error.message;
+      errorEl.textContent = error.message;
       Toast.error(error.message);
       submitBtn.disabled = false;
       submitBtn.textContent = 'Confirm Reservation';

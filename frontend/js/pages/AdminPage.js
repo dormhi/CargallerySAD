@@ -252,6 +252,7 @@ const AdminPage = {
             const endDate = new Date(r.endDate);
             const diffDays = Math.ceil((endDate - today) / (1000 * 60 * 60 * 24));
             const remaining = r.status === 'cancelled' ? '—' : diffDays > 0 ? `${diffDays} days` : 'Done';
+            const statusLabel = r.status === 'cancel_requested' ? 'Cancel Req.' : r.status;
             return `
               <tr>
                 <td>${r.id}</td>
@@ -261,10 +262,11 @@ const AdminPage = {
                 <td>${endDate.toLocaleDateString()}</td>
                 <td><strong>${remaining}</strong></td>
                 <td>$${Number(r.totalPrice).toFixed(2)}</td>
-                <td><span class="badge badge--${r.status}">${r.status}</span></td>
+                <td><span class="badge badge--${r.status}">${statusLabel}</span></td>
                 <td>
                   ${r.status === 'pending' ? `<button class="btn btn--success btn--sm approve-res" data-id="${r.id}">Approve</button>` : ''}
-                  ${r.status !== 'cancelled' ? `<button class="btn btn--danger btn--sm cancel-res" data-id="${r.id}">Cancel</button>` : ''}
+                  ${r.status === 'cancel_requested' ? `<button class="btn btn--danger btn--sm cancel-res" data-id="${r.id}">Approve Cancel</button><button class="btn btn--secondary btn--sm reject-cancel" data-id="${r.id}">Reject</button>` : ''}
+                  ${r.status === 'approved' ? `<button class="btn btn--danger btn--sm cancel-res" data-id="${r.id}">Cancel</button>` : ''}
                   <button class="btn btn--danger btn--sm delete-res" data-id="${r.id}">Delete</button>
                 </td>
               </tr>
@@ -285,6 +287,10 @@ const AdminPage = {
     container.querySelectorAll('.delete-res').forEach((btn) => btn.addEventListener('click', async () => {
       if (!confirm('Delete?')) return;
       try { await api.deleteReservation(btn.dataset.id); Toast.success('Deleted'); AdminPage.loadTab(); }
+      catch (error) { Toast.error(error.message); }
+    }));
+    container.querySelectorAll('.reject-cancel').forEach((btn) => btn.addEventListener('click', async () => {
+      try { await api.updateReservationStatus(btn.dataset.id, 'approved'); Toast.success('Cancel request rejected, reservation remains active'); AdminPage.loadTab(); }
       catch (error) { Toast.error(error.message); }
     }));
   },

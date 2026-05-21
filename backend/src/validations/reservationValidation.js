@@ -35,10 +35,10 @@ const createReservationSchema = Joi.object({
 
 const updateStatusSchema = Joi.object({
   status: Joi.string()
-    .valid('pending', 'approved', 'cancelled')
+    .valid('pending', 'approved', 'cancel_requested', 'cancelled')
     .required()
     .messages({
-      'any.only': 'Status must be one of: pending, approved, cancelled',
+      'any.only': 'Status must be one of: pending, approved, cancel_requested, cancelled',
       'any.required': 'Status is required',
     }),
 });

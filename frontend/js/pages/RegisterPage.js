@@ -41,23 +41,33 @@ const RegisterPage = {
 
     document.getElementById('register-form').addEventListener('submit', async (e) => {
       e.preventDefault();
+      const name = document.getElementById('reg-name').value.trim();
+      const email = document.getElementById('reg-email').value.trim();
+      const phone = document.getElementById('reg-phone').value.trim();
+      const password = document.getElementById('reg-password').value;
+      const errorEl = document.getElementById('reg-error');
+
+      // Client-side validation
+      if (!name || name.length < 2) { errorEl.textContent = 'Name must be at least 2 characters'; return; }
+      if (!email) { errorEl.textContent = 'Email is required'; return; }
+      const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+      if (!emailRegex.test(email)) { errorEl.textContent = 'Please enter a valid email address'; return; }
+      if (phone && !/^[0-9+\-() ]{7,20}$/.test(phone)) { errorEl.textContent = 'Please enter a valid phone number'; return; }
+      if (!password || password.length < 4) { errorEl.textContent = 'Password must be at least 4 characters'; return; }
+      errorEl.textContent = '';
+
       const btn = document.getElementById('reg-btn');
       btn.disabled = true;
       btn.textContent = 'Creating account...';
 
       try {
-        const response = await api.register({
-          name: document.getElementById('reg-name').value.trim(),
-          email: document.getElementById('reg-email').value.trim(),
-          phone: document.getElementById('reg-phone').value.trim(),
-          password: document.getElementById('reg-password').value,
-        });
+        const response = await api.register({ name, email, phone, password });
         Auth.setUser(response.data);
         Toast.success('Account created! You have $10,000 starting balance.');
         Navbar.render();
         Router.navigate('/dashboard');
       } catch (error) {
-        document.getElementById('reg-error').textContent = error.message;
+        errorEl.textContent = error.message;
         btn.disabled = false;
         btn.textContent = 'Create Account';
       }

@@ -19,6 +19,7 @@ const options = {
       },
     ],
     tags: [
+      { name: 'Users', description: 'User authentication and account operations' },
       { name: 'Categories', description: 'Category management operations' },
       { name: 'Vehicles', description: 'Vehicle management operations' },
       { name: 'Reservations', description: 'Reservation management operations' },

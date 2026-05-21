@@ -33,21 +33,29 @@ const LoginPage = {
 
     document.getElementById('login-form').addEventListener('submit', async (e) => {
       e.preventDefault();
+      const email = document.getElementById('login-email').value.trim();
+      const password = document.getElementById('login-password').value;
+      const errorEl = document.getElementById('login-error');
+
+      // Client-side validation
+      if (!email) { errorEl.textContent = 'Email is required'; return; }
+      const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+      if (!emailRegex.test(email)) { errorEl.textContent = 'Please enter a valid email address'; return; }
+      if (!password) { errorEl.textContent = 'Password is required'; return; }
+      errorEl.textContent = '';
+
       const btn = document.getElementById('login-btn');
       btn.disabled = true;
       btn.textContent = 'Signing in...';
 
       try {
-        const response = await api.login(
-          document.getElementById('login-email').value.trim(),
-          document.getElementById('login-password').value
-        );
+        const response = await api.login(email, password);
         Auth.setUser(response.data);
         Toast.success(`Welcome, ${response.data.name}!`);
         Navbar.render();
         Router.navigate(Auth.isAdmin() ? '/admin' : '/dashboard');
       } catch (error) {
-        document.getElementById('login-error').textContent = error.message;
+        errorEl.textContent = error.message;
         btn.disabled = false;
         btn.textContent = 'Sign In';
       }

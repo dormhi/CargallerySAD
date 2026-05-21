@@ -5,10 +5,12 @@
 const reservationService = require('../src/services/reservationService');
 const reservationRepository = require('../src/repositories/reservationRepository');
 const vehicleRepository = require('../src/repositories/vehicleRepository');
+const userRepository = require('../src/repositories/userRepository');
 
 // Mock repositories
 jest.mock('../src/repositories/reservationRepository');
 jest.mock('../src/repositories/vehicleRepository');
+jest.mock('../src/repositories/userRepository');
 
 describe('ReservationService', () => {
   afterEach(() => {
@@ -32,6 +34,13 @@ describe('ReservationService', () => {
     endDate: new Date('2026-06-05'),
     totalPrice: 300,
     status: 'pending',
+  };
+
+  const mockUser = {
+    id: 1,
+    name: 'John Doe',
+    phone: '+90 555 123 4567',
+    balance: 10000,
   };
 
   // ── getAll ──
@@ -79,9 +88,11 @@ describe('ReservationService', () => {
     test('should create reservation with auto-calculated price', async () => {
       vehicleRepository.findById.mockResolvedValue(mockVehicle);
       reservationRepository.findOverlapping.mockResolvedValue([]);
+      userRepository.findById.mockResolvedValue(mockUser);
+      userRepository.updateBalance.mockResolvedValue({ ...mockUser, balance: 9700 });
       reservationRepository.create.mockResolvedValue(mockReservation);
 
-      const result = await reservationService.create(validInput);
+      const result = await reservationService.create(validInput, mockUser);
 
       expect(result).toEqual(mockReservation);
       expect(reservationRepository.create).toHaveBeenCalledWith(
@@ -95,18 +106,18 @@ describe('ReservationService', () => {
     test('should throw 404 when vehicle does not exist', async () => {
       vehicleRepository.findById.mockResolvedValue(null);
 
-      await expect(reservationService.create(validInput))
+      await expect(reservationService.create(validInput, mockUser))
         .rejects.toThrow('Vehicle not found');
     });
 
     test('should throw 400 when vehicle is not available', async () => {
       vehicleRepository.findById.mockResolvedValue({ ...mockVehicle, available: false });
 
-      await expect(reservationService.create(validInput))
+      await expect(reservationService.create(validInput, mockUser))
         .rejects.toThrow('Vehicle is not available for reservation');
 
       try {
-        await reservationService.create(validInput);
+        await reservationService.create(validInput, mockUser);
       } catch (error) {
         expect(error.statusCode).toBe(400);
       }
@@ -121,11 +132,11 @@ describe('ReservationService', () => {
         },
       ]);
 
-      await expect(reservationService.create(validInput))
+      await expect(reservationService.create(validInput, mockUser))
         .rejects.toThrow('Vehicle is already reserved for the selected dates');
 
       try {
-        await reservationService.create(validInput);
+        await reservationService.create(validInput, mockUser);
       } catch (error) {
         expect(error.statusCode).toBe(409);
         expect(error.details).toBeDefined();

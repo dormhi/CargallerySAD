@@ -307,10 +307,10 @@ const AdminPage = {
         <button class="btn btn--primary btn--sm" id="add-admin-btn">+ Create Admin</button>
       </div>
       <div class="table-wrapper"><table class="table">
-        <thead><tr><th>ID</th><th>Name</th><th>Email</th><th>Role</th><th>Reservations</th></tr></thead>
+        <thead><tr><th>ID</th><th>Username</th><th>Name</th><th>Email</th><th>Role</th><th>Reservations</th></tr></thead>
         <tbody>${admins.map((a) => `
           <tr>
-            <td>${a.id}</td><td>${a.name}</td><td>${a.email}</td>
+            <td>${a.id}</td><td>${a.username}</td><td>${a.name}</td><td>${a.email || '—'}</td>
             <td><span class="badge badge--${a.role === 'master_admin' ? 'approved' : 'pending'}">${a.role.replace('_', ' ')}</span></td>
             <td>${a._count?.reservations || 0}</td>
           </tr>
@@ -321,8 +321,9 @@ const AdminPage = {
     document.getElementById('add-admin-btn').addEventListener('click', () => {
       Modal.open('Create Admin Account', `
         <form class="form" id="admin-form">
+          <div class="form__group"><label class="form__label">Username *</label><input type="text" id="adm-username" class="form__input" required minlength="2" /></div>
           <div class="form__group"><label class="form__label">Name *</label><input type="text" id="adm-name" class="form__input" required /></div>
-          <div class="form__group"><label class="form__label">Username *</label><input type="text" id="adm-email" class="form__input" required /></div>
+          <div class="form__group"><label class="form__label">Email</label><input type="email" id="adm-email" class="form__input" placeholder="optional" /></div>
           <div class="form__group"><label class="form__label">Password *</label><input type="password" id="adm-pass" class="form__input" required minlength="4" /></div>
           <span class="form__error" id="adm-error"></span>
           <button type="submit" class="btn btn--primary btn--block">Create Admin</button>
@@ -332,8 +333,9 @@ const AdminPage = {
         e.preventDefault();
         try {
           await api.createAdmin({
+            username: document.getElementById('adm-username').value.trim(),
             name: document.getElementById('adm-name').value.trim(),
-            email: document.getElementById('adm-email').value.trim(),
+            email: document.getElementById('adm-email').value.trim() || undefined,
             password: document.getElementById('adm-pass').value,
           });
           Toast.success('Admin account created');
@@ -354,17 +356,17 @@ const AdminPage = {
     container.innerHTML = `
       <div class="actions-bar"><span class="actions-bar__count">${users.length} user(s)</span></div>
       <div class="table-wrapper"><table class="table">
-        <thead><tr><th>ID</th><th>Name</th><th>Email</th><th>Phone</th><th>Balance</th><th>Role</th><th>Rentals</th><th>Actions</th></tr></thead>
-        <tbody>${users.length === 0 ? '<tr><td colspan="8" style="text-align:center;color:var(--text-muted);">No users</td></tr>' :
+        <thead><tr><th>ID</th><th>Username</th><th>Name</th><th>Email</th><th>Phone</th><th>Balance</th><th>Role</th><th>Rentals</th><th>Actions</th></tr></thead>
+        <tbody>${users.length === 0 ? '<tr><td colspan="9" style="text-align:center;color:var(--text-muted);">No users</td></tr>' :
           users.map((u) => `
           <tr>
-            <td>${u.id}</td><td>${u.name}</td><td>${u.email}</td>
+            <td>${u.id}</td><td>${u.username}</td><td>${u.name}</td><td>${u.email || '—'}</td>
             <td>${u.phone || '—'}</td>
             <td>$${Number(u.balance).toFixed(2)}</td>
             <td><span class="badge badge--${u.role === 'master_admin' ? 'approved' : u.role === 'admin' ? 'pending' : 'cancelled'}">${u.role.replace('_', ' ')}</span></td>
             <td>${u._count?.reservations || 0}</td>
             <td>
-              <button class="btn btn--secondary btn--sm edit-user" data-id="${u.id}" data-name="${u.name}" data-email="${u.email}" data-phone="${u.phone || ''}" data-balance="${u.balance}" data-role="${u.role}">Edit</button>
+              <button class="btn btn--secondary btn--sm edit-user" data-id="${u.id}" data-name="${u.name}" data-email="${u.email || ''}" data-phone="${u.phone || ''}" data-balance="${u.balance}" data-role="${u.role}">Edit</button>
               ${u._count?.reservations > 0 ? `<button class="btn btn--primary btn--sm view-user-res" data-id="${u.id}" data-name="${u.name}">Rentals</button>` : ''}
               ${u.role !== 'master_admin' && u.id !== Auth.getUserId() ? `<button class="btn btn--danger btn--sm delete-user" data-id="${u.id}" data-name="${u.name}">Delete</button>` : ''}
             </td>
@@ -408,8 +410,8 @@ const AdminPage = {
           <input type="text" id="eu-name" class="form__input" value="${user.name}" required />
         </div>
         <div class="form__group">
-          <label class="form__label">Username</label>
-          <input type="text" id="eu-email" class="form__input" value="${user.email}" required />
+          <label class="form__label">Email</label>
+          <input type="email" id="eu-email" class="form__input" value="${user.email}" placeholder="optional" />
         </div>
         <div class="form__group">
           <label class="form__label">Phone</label>
@@ -432,12 +434,11 @@ const AdminPage = {
       e.preventDefault();
       const data = {
         name: document.getElementById('eu-name').value.trim(),
-        email: document.getElementById('eu-email').value.trim(),
+        email: document.getElementById('eu-email').value.trim() || null,
         phone: document.getElementById('eu-phone').value.trim(),
         balance: Number(document.getElementById('eu-balance').value),
       };
       if (!data.name || data.name.length < 2) { document.getElementById('eu-error').textContent = 'Name must be at least 2 characters'; return; }
-      if (!data.email) { document.getElementById('eu-error').textContent = 'Email is required'; return; }
       try {
         await api.updateUser(user.id, data);
         Toast.success('User updated');

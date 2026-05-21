@@ -10,17 +10,29 @@ const userService = {
    * Register a new user
    */
   async register(data) {
-    const existing = await userRepository.findByEmail(data.email);
-    if (existing) {
-      const error = new Error('Email is already registered');
+    // Check username uniqueness
+    const existingUsername = await userRepository.findByUsername(data.username);
+    if (existingUsername) {
+      const error = new Error('Username is already taken');
       error.statusCode = 409;
       throw error;
     }
 
+    // Check email uniqueness (if provided)
+    if (data.email) {
+      const existingEmail = await userRepository.findByEmail(data.email);
+      if (existingEmail) {
+        const error = new Error('Email is already registered');
+        error.statusCode = 409;
+        throw error;
+      }
+    }
+
     const hashedPassword = await bcrypt.hash(data.password, 10);
     const user = await userRepository.create({
+      username: data.username,
       name: data.name,
-      email: data.email,
+      email: data.email || null,
       phone: data.phone || '',
       password: hashedPassword,
     });
@@ -30,19 +42,19 @@ const userService = {
   },
 
   /**
-   * Login user
+   * Login user (accepts username or email)
    */
-  async login(email, password) {
-    const user = await userRepository.findByEmail(email);
+  async login(identifier, password) {
+    const user = await userRepository.findByUsernameOrEmail(identifier);
     if (!user) {
-      const error = new Error('Invalid email or password');
+      const error = new Error('Invalid username/email or password');
       error.statusCode = 401;
       throw error;
     }
 
     const validPassword = await bcrypt.compare(password, user.password);
     if (!validPassword) {
-      const error = new Error('Invalid email or password');
+      const error = new Error('Invalid username/email or password');
       error.statusCode = 401;
       throw error;
     }
@@ -122,17 +134,18 @@ const userService = {
    * Create admin account (master_admin only)
    */
   async createAdmin(data) {
-    const existing = await userRepository.findByEmail(data.email);
-    if (existing) {
-      const error = new Error('Email is already taken');
+    const existingUsername = await userRepository.findByUsername(data.username);
+    if (existingUsername) {
+      const error = new Error('Username is already taken');
       error.statusCode = 409;
       throw error;
     }
 
     const hashedPassword = await bcrypt.hash(data.password, 10);
     const admin = await userRepository.create({
+      username: data.username,
       name: data.name,
-      email: data.email,
+      email: data.email || null,
       phone: '',
       password: hashedPassword,
       role: 'admin',

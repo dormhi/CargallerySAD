@@ -10,7 +10,22 @@ const userRepository = {
   },
 
   async findByEmail(email) {
-    return prisma.user.findUnique({ where: { email } });
+    return prisma.user.findFirst({ where: { email } });
+  },
+
+  async findByUsername(username) {
+    return prisma.user.findUnique({ where: { username } });
+  },
+
+  async findByUsernameOrEmail(identifier) {
+    return prisma.user.findFirst({
+      where: {
+        OR: [
+          { username: identifier },
+          { email: identifier },
+        ],
+      },
+    });
   },
 
   async create(data) {
@@ -42,7 +57,7 @@ const userRepository = {
     return prisma.user.findMany({
       where,
       select: {
-        id: true, name: true, email: true, phone: true,
+        id: true, username: true, name: true, email: true, phone: true,
         balance: true, role: true, createdAt: true,
         _count: { select: { reservations: true } },
       },

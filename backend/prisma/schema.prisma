@@ -31,8 +31,9 @@ enum ReservationStatus {
 
 model User {
   id           Int           @id @default(autoincrement())
+  username     String        @unique
   name         String
-  email        String        @unique
+  email        String?
   phone        String        @default("")
   password     String
   balance      Decimal       @default(10000) @db.Decimal(10, 2)

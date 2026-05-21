@@ -16,8 +16,8 @@ const LoginPage = {
           <p class="auth-card__subtitle">Sign in to your account</p>
           <form class="form" id="login-form">
             <div class="form__group">
-              <label class="form__label" for="login-email">Username</label>
-              <input type="text" id="login-email" class="form__input" placeholder="Enter your username" required />
+              <label class="form__label" for="login-email">Username or Email</label>
+              <input type="text" id="login-email" class="form__input" placeholder="Enter username or email" required />
             </div>
             <div class="form__group">
               <label class="form__label" for="login-password">Password</label>
@@ -38,7 +38,7 @@ const LoginPage = {
       const errorEl = document.getElementById('login-error');
 
       // Client-side validation
-      if (!email) { errorEl.textContent = 'Username is required'; return; }
+      if (!email) { errorEl.textContent = 'Username or email is required'; return; }
       if (!password) { errorEl.textContent = 'Password is required'; return; }
       errorEl.textContent = '';
 

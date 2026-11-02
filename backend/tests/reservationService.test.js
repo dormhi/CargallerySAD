@@ -12,6 +12,9 @@ jest.mock('../src/repositories/reservationRepository');
 jest.mock('../src/repositories/vehicleRepository');
 jest.mock('../src/repositories/userRepository');
 
+// Use next year so fixtures never fall into the past
+const FUTURE_YEAR = new Date().getFullYear() + 1;
+
 describe('ReservationService', () => {
   afterEach(() => {
     jest.clearAllMocks();
@@ -30,8 +33,8 @@ describe('ReservationService', () => {
     vehicleId: 1,
     customerName: 'John Doe',
     customerPhone: '+90 555 123 4567',
-    startDate: new Date('2026-06-01'),
-    endDate: new Date('2026-06-05'),
+    startDate: new Date(`${FUTURE_YEAR}-06-01`),
+    endDate: new Date(`${FUTURE_YEAR}-06-05`),
     totalPrice: 300,
     status: 'pending',
   };
@@ -81,8 +84,8 @@ describe('ReservationService', () => {
       vehicleId: 1,
       customerName: 'John Doe',
       customerPhone: '+90 555 123 4567',
-      startDate: '2026-06-01',
-      endDate: '2026-06-05',
+      startDate: `${FUTURE_YEAR}-06-01`,
+      endDate: `${FUTURE_YEAR}-06-05`,
     };
 
     test('should create reservation with auto-calculated price', async () => {
@@ -127,8 +130,8 @@ describe('ReservationService', () => {
       vehicleRepository.findById.mockResolvedValue(mockVehicle);
       reservationRepository.findOverlapping.mockResolvedValue([
         {
-          startDate: new Date('2026-06-02'),
-          endDate: new Date('2026-06-04'),
+          startDate: new Date(`${FUTURE_YEAR}-06-02`),
+          endDate: new Date(`${FUTURE_YEAR}-06-04`),
         },
       ]);
 

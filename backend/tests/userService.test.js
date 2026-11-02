@@ -63,7 +63,7 @@ describe('UserService', () => {
 
   describe('login', () => {
     test('should login with valid credentials', async () => {
-      userRepository.findByEmail.mockResolvedValue(mockUser);
+      userRepository.findByUsernameOrEmail.mockResolvedValue(mockUser);
       bcrypt.compare.mockResolvedValue(true);
 
       const result = await userService.login('john@example.com', 'test1234');
@@ -74,10 +74,10 @@ describe('UserService', () => {
     });
 
     test('should throw 401 when email does not exist', async () => {
-      userRepository.findByEmail.mockResolvedValue(null);
+      userRepository.findByUsernameOrEmail.mockResolvedValue(null);
 
       await expect(userService.login('unknown@example.com', 'test1234'))
-        .rejects.toThrow('Invalid email or password');
+        .rejects.toThrow('Invalid username/email or password');
 
       try {
         await userService.login('unknown@example.com', 'test1234');
@@ -87,11 +87,11 @@ describe('UserService', () => {
     });
 
     test('should throw 401 when password is incorrect', async () => {
-      userRepository.findByEmail.mockResolvedValue(mockUser);
+      userRepository.findByUsernameOrEmail.mockResolvedValue(mockUser);
       bcrypt.compare.mockResolvedValue(false);
 
       await expect(userService.login('john@example.com', 'wrong'))
-        .rejects.toThrow('Invalid email or password');
+        .rejects.toThrow('Invalid username/email or password');
     });
   });
 
@@ -171,13 +171,13 @@ describe('UserService', () => {
       );
     });
 
-    test('should throw 409 when admin email is already taken', async () => {
-      userRepository.findByEmail.mockResolvedValue(mockUser);
+    test('should throw 409 when admin username is already taken', async () => {
+      userRepository.findByUsername.mockResolvedValue(mockUser);
 
-      const input = { name: 'Admin', email: 'john@example.com', password: 'admin1234' };
+      const input = { username: 'john', name: 'Admin', email: 'john@example.com', password: 'admin1234' };
 
       await expect(userService.createAdmin(input))
-        .rejects.toThrow('Email is already taken');
+        .rejects.toThrow('Username is already taken');
 
       try {
         await userService.createAdmin(input);
